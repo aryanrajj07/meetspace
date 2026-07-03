@@ -87,6 +87,10 @@ export default function Room() {
   const [participants, setParticipants] = useState<Record<string, Participant>>({});
   const [handNotifications, setHandNotifications] = useState<HandNotification[]>([]);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+
   const notifCounterRef = useRef(0);
 
   const copyMeetingLink = useCallback(() => {
@@ -378,7 +382,57 @@ export default function Room() {
       }
     }
   };
+  const startRecording = () => {
+  if (!localStream) {
+    console.log("No local stream");
+    return;
+  }
 
+  recordedChunksRef.current = [];
+
+  const recorder = new MediaRecorder(localStream, {
+    mimeType: "video/webm",
+  });
+
+  recorder.ondataavailable = (event) => {
+    if (event.data.size > 0) {
+      recordedChunksRef.current.push(event.data);
+    }
+  };
+
+  recorder.onstart = () => {
+    console.log("Recording Started");
+    setIsRecording(true);
+  };
+
+  recorder.start();
+
+  mediaRecorderRef.current = recorder;
+};
+const stopRecording = () => {
+  if (!mediaRecorderRef.current) return;
+
+  mediaRecorderRef.current.onstop = () => {
+    const blob = new Blob(recordedChunksRef.current, {
+      type: "video/webm",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `meeting-${Date.now()}.webm`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    console.log("Recording Finished");
+  };
+
+  mediaRecorderRef.current.stop();
+
+  setIsRecording(false);
+};
   const leaveMeeting = () => {
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     screenStream?.getTracks().forEach(t => t.stop());
@@ -556,6 +610,7 @@ export default function Room() {
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="w-px h-8 bg-white/10" />
             <ControlBtn active={!isMuted} activeClass="bg-white/10" inactiveClass="bg-red-500/20 text-red-400" onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"}>
               {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </ControlBtn>
@@ -573,15 +628,32 @@ export default function Room() {
               {isScreenSharing ? <MonitorX className="w-5 h-5" /> : <MonitorUp className="w-5 h-5" />}
             </ControlBtn>
             <ControlBtn
-              active={isHandRaised}
-              activeClass="bg-yellow-500/25 text-yellow-300 ring-1 ring-yellow-400/50"
-              inactiveClass="bg-white/10"
-              onClick={toggleHandRaise}
-              title={isHandRaised ? "Lower hand" : "Raise hand"}
-            >
-              <span className={`text-lg leading-none ${isHandRaised ? "animate-bounce" : ""}`}>✋</span>
+             active={isHandRaised}
+             activeClass="bg-yellow-500/25 text-yellow-300 ring-1 ring-yellow-400/50"
+             inactiveClass="bg-white/10"
+             onClick={toggleHandRaise}
+             title={isHandRaised ? "Lower hand" : "Raise hand"}
+>
+            <span className={`text-lg leading-none ${isHandRaised ? "animate-bounce" : ""}`}>✋</span>
             </ControlBtn>
-            <div className="w-px h-8 bg-white/10" />
+
+             {!isRecording ? (
+           <Button
+             onClick={startRecording}
+             className="bg-red-600 text-white px-8 py-4 text-lg border-4 border-yellow-400"
+            >
+             START RECORDING
+            </Button>
+          ) : (
+            <Button
+             onClick={stopRecording}
+             variant="destructive"
+  >
+            ⏹ Stop Recording
+            </Button>
+          )}
+
+          <div className="w-px h-8 bg-white/10" />
             <ControlBtn active={showParticipants} activeClass="bg-blue-600/30 text-blue-400" inactiveClass="bg-white/10" onClick={() => { setShowParticipants(v => !v); setShowChat(false); }} title="Participants">
               <Users className="w-5 h-5" />
               <span className="text-xs ml-1">{participantCount}</span>
@@ -595,12 +667,11 @@ export default function Room() {
           </div>
 
           <Button
-            variant="destructive"
-            className="rounded-full px-6 font-semibold h-11 shadow-lg shadow-red-900/30 text-sm"
-            onClick={leaveMeeting}
-          >
-            <PhoneOff className="w-4 h-4 mr-2" />
-            Leave
+          variant="destructive"
+          className="rounded-full px-6 font-semibold h-11 bg-green-600 text-white text-lg"
+          onClick={leaveMeeting}
+         >
+           🚀 TEST BUTTON
           </Button>
         </div>
       </div>
