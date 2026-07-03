@@ -19,18 +19,21 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Login button clicked");
     login.mutate({ data: { email, password } }, {
       onSuccess: (res) => {
         setToken(res.token);
         setLocation("/");
       },
-      onError: () => {
-        toast({
-          title: "Login failed",
-          description: "Please check your credentials and try again.",
-          variant: "destructive"
-        });
-      }
+      onError: (error) => {
+  console.error("Login error:", error);
+
+  toast({
+    title: "Login failed",
+    description: "Please check your credentials and try again.",
+    variant: "destructive"
+  });
+}
     });
   };
 
