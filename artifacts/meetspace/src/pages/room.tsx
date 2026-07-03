@@ -182,7 +182,13 @@ export default function Room() {
       localStreamRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-      const socket = io();
+      console.log("Audio tracks:", stream.getAudioTracks());
+      console.log("Video tracks:", stream.getVideoTracks());
+      console.log("Local stream:", stream);
+
+      const socket = io(import.meta.env.VITE_API_URL, {
+  transports: ["websocket", "polling"],
+});
       socketRef.current = socket;
       socket.emit("join-room", { roomCode, userId: user.id, userName: user.name });
 
@@ -291,20 +297,40 @@ export default function Room() {
   }, [roomCode, user, createCameraPeer]);
 
   const toggleMute = () => {
-    if (localStream) {
-      const enabled = !isMuted;
-      localStream.getAudioTracks().forEach(t => { t.enabled = enabled; });
-      setIsMuted(!enabled);
-    }
-  };
+  console.log("Mute button clicked");
+
+  if (!localStream) {
+    console.log("No local stream");
+    return;
+  }
+
+  const track = localStream.getAudioTracks()[0];
+
+  console.log("Audio track:", track);
+
+  if (!track) return;
+
+  track.enabled = !track.enabled;
+  setIsMuted(!track.enabled);
+ };
 
   const toggleVideo = () => {
-    if (localStream) {
-      const enabled = !isVideoOff;
-      localStream.getVideoTracks().forEach(t => { t.enabled = enabled; });
-      setIsVideoOff(!enabled);
-    }
-  };
+  console.log("Video button clicked");
+
+  if (!localStream) {
+    console.log("No local stream");
+    return;
+  }
+
+  const track = localStream.getVideoTracks()[0];
+
+  console.log("Video track:", track);
+
+  if (!track) return;
+
+  track.enabled = !track.enabled;
+  setIsVideoOff(!track.enabled);
+};
 
   const stopScreenShare = useCallback(async () => {
     screenStream?.getTracks().forEach(t => t.stop());
