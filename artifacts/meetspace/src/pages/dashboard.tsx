@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video, Calendar, Clock, Plus, Users } from "lucide-react";
 import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -16,10 +18,20 @@ export default function Dashboard() {
     totalDuration: 0,
     upcomingCount: meetings?.filter(m => m.status === 'scheduled').length || 0,
     hostedCount: meetings?.filter(m => m.hostId === user?.id).length || 0,
-  };
+  }; 
+
+  const [search, setSearch] = useState("");
 
   const upcomingMeetings = meetings?.filter(m => m.status === 'scheduled') || [];
-  const recentMeetings = meetings?.filter(m => m.status === 'ended' || m.status === 'active') || [];
+  const recentMeetings =
+  meetings?.filter((m) => {
+    const statusMatch = m.status === "ended" || m.status === "active";
+    const searchMatch = m.title
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    return statusMatch && searchMatch;
+  }) || [];
 
   return (
     <div className="space-y-8">
@@ -113,6 +125,13 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-4">
+          <div className="mb-4">
+              <Input
+              placeholder="Search meetings..."
+             value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              />
+          </div>
           <h2 className="text-xl font-bold">Recent Meetings</h2>
           {isLoading ? (
             <div className="space-y-4 animate-pulse">

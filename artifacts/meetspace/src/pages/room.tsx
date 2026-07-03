@@ -88,6 +88,7 @@ export default function Room() {
   const [handNotifications, setHandNotifications] = useState<HandNotification[]>([]);
   const [linkCopied, setLinkCopied] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [meetingTime, setMeetingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
@@ -434,12 +435,23 @@ const stopRecording = () => {
   setIsRecording(false);
 };
   const leaveMeeting = () => {
-    localStreamRef.current?.getTracks().forEach(t => t.stop());
-    screenStream?.getTracks().forEach(t => t.stop());
-    Object.values(peersRef.current).forEach(p => { p.pc.close(); p.screenPc?.close(); });
-    socketRef.current?.disconnect();
-    setLocation("/");
-  };
+  const confirmLeave = window.confirm(
+    "Are you sure you want to leave this meeting?"
+  );
+
+  if (!confirmLeave) return;
+
+  localStreamRef.current?.getTracks().forEach(t => t.stop());
+  screenStream?.getTracks().forEach(t => t.stop());
+
+  Object.values(peersRef.current).forEach(p => {
+    p.pc.close();
+    p.screenPc?.close();
+  });
+
+  socketRef.current?.disconnect();
+  setLocation("/");
+};
 
   const sendChatMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -633,25 +645,22 @@ const stopRecording = () => {
              inactiveClass="bg-white/10"
              onClick={toggleHandRaise}
              title={isHandRaised ? "Lower hand" : "Raise hand"}
->
-            <span className={`text-lg leading-none ${isHandRaised ? "animate-bounce" : ""}`}>✋</span>
+            >
+             <span className={`text-lg leading-none ${isHandRaised ? "animate-bounce" : ""}`}>✋</span>
             </ControlBtn>
 
-             {!isRecording ? (
-           <Button
-             onClick={startRecording}
-             className="bg-red-600 text-white px-8 py-4 text-lg border-4 border-yellow-400"
-            >
-             START RECORDING
-            </Button>
-          ) : (
-            <Button
-             onClick={stopRecording}
-             variant="destructive"
-  >
-            ⏹ Stop Recording
-            </Button>
-          )}
+            <ControlBtn
+              active={isRecording}
+              activeClass="bg-red-600 text-white"
+              inactiveClass="bg-white/10"
+             onClick={isRecording ? stopRecording : startRecording}
+              title={isRecording ? "Stop Recording" : "Start Recording"}
+           >
+             <span className="text-lg">
+              {isRecording ? "⏹" : "⏺"}
+             </span>
+            </ControlBtn>
+          
 
           <div className="w-px h-8 bg-white/10" />
             <ControlBtn active={showParticipants} activeClass="bg-blue-600/30 text-blue-400" inactiveClass="bg-white/10" onClick={() => { setShowParticipants(v => !v); setShowChat(false); }} title="Participants">
