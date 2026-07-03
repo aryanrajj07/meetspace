@@ -667,11 +667,12 @@ const stopRecording = () => {
           </div>
 
           <Button
-          variant="destructive"
-          className="rounded-full px-6 font-semibold h-11 bg-green-600 text-white text-lg"
-          onClick={leaveMeeting}
-         >
-           🚀 TEST BUTTON
+           variant="destructive"
+            className="rounded-full px-6 font-semibold h-11 shadow-lg shadow-red-900/30 text-sm"
+            onClick={leaveMeeting}
+           >
+          <PhoneOff className="w-4 h-4 mr-2" />
+            Leave
           </Button>
         </div>
       </div>
@@ -691,7 +692,7 @@ const stopRecording = () => {
                     </span>
                   )}
                 </div>
-                <button onClick={() => setShowParticipants(false)} className="text-zinc-500 hover:text-white">
+                 <button onClick={() => setShowParticipants(false)} className="text-zinc-500 hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -733,9 +734,9 @@ const stopRecording = () => {
                   <MessageSquare className="w-4 h-4 text-blue-400" />
                   Meeting Chat
                 </div>
-                <button onClick={() => setShowChat(false)} className="text-zinc-500 hover:text-white">
+                 <button onClick={() => setShowChat(false)} className="text-zinc-500 hover:text-white">
                   <X className="w-4 h-4" />
-                </button>
+                 </button>
               </div>
               <ScrollArea className="flex-1 p-4">
                 {messages.length === 0 ? (
