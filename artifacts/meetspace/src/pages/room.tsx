@@ -481,42 +481,7 @@ if (!response.ok) {
   setIsRecording(false);
 };
  const [showMeetingSummary, setShowMeetingSummary] = useState(false);
-  const leaveMeeting = async () => {
-  if (!window.confirm("Are you sure you want to leave this meeting?")) {
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem("meetspace_token");
-
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/meetings/room/${roomCode}/end`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-
-      console.error("End meeting failed:", response.status, error);
-
-      alert(`Failed to end meeting.\nStatus: ${response.status}`);
-
-      return;
-    }
-
-    console.log("Meeting ended successfully.");
-  } catch (err) {
-    console.error(err);
-    alert("Server connection failed.");
-    return;
-  }
-
+  const leaveMeeting = () => {
   localStreamRef.current?.getTracks().forEach((t) => t.stop());
   screenStream?.getTracks().forEach((t) => t.stop());
 
