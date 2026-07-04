@@ -2,7 +2,16 @@ import { Link, useLocation } from "wouter";
 import { useListMeetings, getListMeetingsQueryKey, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, Calendar, Clock, Plus, Users } from "lucide-react";
+import {
+  Video,
+  Calendar,
+  Clock,
+  Plus,
+  Users,
+  Activity,
+  Timer,
+  BarChart3,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -14,11 +23,34 @@ export default function Dashboard() {
   
   // TODO: Use useGetMeetingStats when available
   const stats = {
-    totalMeetings: meetings?.length || 0,
-    totalDuration: 0,
-    upcomingCount: meetings?.filter(m => m.status === 'scheduled').length || 0,
-    hostedCount: meetings?.filter(m => m.hostId === user?.id).length || 0,
-  }; 
+  totalMeetings: meetings?.length || 0,
+  totalDuration:
+    meetings?.reduce((sum, m) => sum + (m.duration || 0), 0) || 0,
+
+  upcomingCount:
+    meetings?.filter(m => m.status === "scheduled").length || 0,
+
+  hostedCount:
+    meetings?.filter(m => m.hostId === user?.id).length || 0,
+
+  activeCount:
+    meetings?.filter(m => m.status === "active").length || 0,
+
+  totalParticipants:
+    meetings?.reduce(
+      (sum, m) => sum + (m.participants?.length || 0),
+      0
+    ) || 0,
+
+  averageDuration:
+    meetings && meetings.length
+      ? Math.floor(
+          meetings.reduce((sum, m) => sum + (m.duration || 0), 0) /
+            meetings.length /
+            60
+        )
+      : 0,
+};
 
   const [search, setSearch] = useState("");
 
@@ -52,6 +84,51 @@ export default function Dashboard() {
             <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
               <Video className="w-6 h-6" />
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <Card className="p-6 bg-card border-border shadow-sm">
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
+        <Activity className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          Active Meetings
+        </p>
+        <p className="text-2xl font-bold">{stats.activeCount}</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="p-6 bg-card border-border shadow-sm">
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+        <Users className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          Participants
+        </p>
+        <p className="text-2xl font-bold">{stats.totalParticipants}</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="p-6 bg-card border-border shadow-sm">
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500">
+        <Timer className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          Avg Duration
+        </p>
+        <p className="text-2xl font-bold">
+          {stats.averageDuration} min
+        </p>
+      </div>
+    </div>
+  </Card>
+</div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Meetings</p>
               <p className="text-2xl font-bold">{stats.totalMeetings}</p>

@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { customFetch } from "@workspace/api-client-react";
 
 interface PeerState {
   pc: RTCPeerConnection;
@@ -89,6 +90,13 @@ export default function Room() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [meetingTime, setMeetingTime] = useState(0);
+  useEffect(() => {
+  const timer = setInterval(() => {
+    setMeetingTime((prev) => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
@@ -410,10 +418,11 @@ export default function Room() {
 
   mediaRecorderRef.current = recorder;
 };
-const stopRecording = () => {
+const stopRecording = async () => {
   if (!mediaRecorderRef.current) return;
 
-  mediaRecorderRef.current.onstop = () => {
+ mediaRecorderRef.current.onstop = async () => {
+  console.log("✅ onstop fired");
     const blob = new Blob(recordedChunksRef.current, {
       type: "video/webm",
     });
@@ -428,6 +437,30 @@ formData.append(
 formData.append("meetingId", roomCode || "");
 formData.append("meetingTitle", "Meeting");
 formData.append("duration", String(meetingTime));
+
+  try {
+   const token = localStorage.getItem("meetspace_token");
+   console.log("API URL:", import.meta.env.VITE_API_URL);
+
+  const response = await fetch(
+  `${import.meta.env.VITE_API_URL}/recordings/upload`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  }
+);
+console.log("Response status:", response.status);
+
+if (!response.ok) {
+  throw new Error(`Upload failed: ${response.status}`);
+}
+   console.log("Recording uploaded successfully");
+ }  catch (err) {
+  console.error("Upload failed", err);
+}
 
     const url = URL.createObjectURL(blob);
 
@@ -447,6 +480,7 @@ formData.append("duration", String(meetingTime));
 
   setIsRecording(false);
 };
+ const [showMeetingSummary, setShowMeetingSummary] = useState(false);
   const leaveMeeting = () => {
   const confirmLeave = window.confirm(
     "Are you sure you want to leave this meeting?"
@@ -463,7 +497,7 @@ formData.append("duration", String(meetingTime));
   });
 
   socketRef.current?.disconnect();
-  setLocation("/");
+  setShowMeetingSummary(true);
 };
 
   const sendChatMessage = (e: React.FormEvent) => {
@@ -617,6 +651,9 @@ formData.append("duration", String(meetingTime));
         <div className="h-20 bg-zinc-900/95 border-t border-white/10 backdrop-blur-lg flex items-center justify-between px-8 z-10">
           <div className="flex items-center gap-2">
             <span className="font-mono bg-zinc-800 px-2 py-1 rounded text-xs text-zinc-300">{roomCode}</span>
+            <span className="font-mono bg-zinc-800 px-3 py-1 rounded text-xs text-green-400">
+               {new Date(meetingTime * 1000).toISOString().substring(11, 19)}
+            </span>
             <button
               onClick={copyMeetingLink}
               title="Copy meeting link"

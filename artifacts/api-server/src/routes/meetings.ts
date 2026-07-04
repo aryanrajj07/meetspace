@@ -131,7 +131,30 @@ router.delete("/meetings/:meetingId", requireAuth, async (req: AuthRequest, res)
   await cacheDel(`stats:${req.userId}`);
   res.sendStatus(204);
 });
+router.patch(
+  "/meetings/:meetingId/transcript",
+  requireAuth,
+  async (req: AuthRequest, res): Promise<void> => {
+    const raw = Array.isArray(req.params.meetingId)
+      ? req.params.meetingId[0]
+      : req.params.meetingId;
 
+    const meeting = await Meeting.findById(raw);
+
+    if (!meeting) {
+      res.status(404).json({
+        error: "Meeting not found",
+      });
+      return;
+    }
+
+    meeting.transcript = req.body.transcript;
+
+    await meeting.save();
+
+    res.json(formatMeeting(meeting));
+  }
+);
 router.post("/meetings/:meetingId/end", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const raw = Array.isArray(req.params.meetingId) ? req.params.meetingId[0] : req.params.meetingId;
   const meeting = await Meeting.findById(raw);
