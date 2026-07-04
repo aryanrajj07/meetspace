@@ -417,6 +417,17 @@ const stopRecording = () => {
     const blob = new Blob(recordedChunksRef.current, {
       type: "video/webm",
     });
+    const formData = new FormData();
+
+formData.append(
+  "recording",
+  blob,
+  `meeting-${Date.now()}.webm`
+);
+
+formData.append("meetingId", roomCode || "");
+formData.append("meetingTitle", "Meeting");
+formData.append("duration", String(meetingTime));
 
     const url = URL.createObjectURL(blob);
 
@@ -428,6 +439,8 @@ const stopRecording = () => {
     URL.revokeObjectURL(url);
 
     console.log("Recording Finished");
+    recordedChunksRef.current = [];
+    mediaRecorderRef.current = null;
   };
 
   mediaRecorderRef.current.stop();
