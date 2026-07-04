@@ -28,6 +28,7 @@ function formatMeeting(m: InstanceType<typeof Meeting>) {
     })),
     transcript: m.transcript ?? null,
     summary: m.summary ?? null,
+    notes: m.notes ?? "",
     recordingUrl: m.recordingUrl ?? null,
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
@@ -153,6 +154,55 @@ router.patch(
     await meeting.save();
 
     res.json(formatMeeting(meeting));
+  }
+);
+  router.patch(
+  "/meetings/room/:roomCode/notes",
+  requireAuth,
+  async (req: AuthRequest, res): Promise<void> => {
+    const roomCode = Array.isArray(req.params.roomCode)
+  ? req.params.roomCode[0]
+  : req.params.roomCode;
+
+const meeting = await Meeting.findOne({ roomCode });
+
+    if (!meeting) {
+      res.status(404).json({
+        error: "Meeting not found",
+      });
+      return;
+    }
+
+    meeting.notes = req.body.notes || "";
+
+    await meeting.save();
+
+    res.json({
+      success: true,
+      notes: meeting.notes,
+    });
+  }
+);
+  router.get(
+  "/meetings/room/:roomCode/notes",
+  requireAuth,
+  async (req: AuthRequest, res): Promise<void> => {
+    const roomCode = Array.isArray(req.params.roomCode)
+      ? req.params.roomCode[0]
+      : req.params.roomCode;
+
+    const meeting = await Meeting.findOne({ roomCode });
+
+    if (!meeting) {
+      res.status(404).json({
+        error: "Meeting not found",
+      });
+      return;
+    }
+
+    res.json({
+      notes: meeting.notes || "",
+    });
   }
 );
 router.post("/meetings/:meetingId/end", requireAuth, async (req: AuthRequest, res): Promise<void> => {

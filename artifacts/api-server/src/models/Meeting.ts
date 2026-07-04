@@ -18,40 +18,113 @@ export interface IMeeting extends Document {
   endedAt?: Date;
   duration?: number;
   participants: IParticipant[];
+
   transcript?: string;
   summary?: string;
+  notes?: string;
   recordingUrl?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
 const ParticipantSchema = new Schema<IParticipant>(
   {
-    userId: { type: String, required: true },
-    name: { type: String, required: true },
-    joinedAt: { type: Date, default: Date.now },
-    leftAt: { type: Date },
+    userId: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    leftAt: {
+      type: Date,
+    },
   },
-  { _id: false }
+  {
+    _id: false,
+  }
 );
 
 const MeetingSchema = new Schema<IMeeting>(
   {
-    title: { type: String, required: true, trim: true },
-    hostId: { type: String, required: true },
-    hostName: { type: String, required: true },
-    roomCode: { type: String, required: true, unique: true },
-    status: { type: String, enum: ["scheduled", "active", "ended"], default: "scheduled" },
-    scheduledAt: { type: Date },
-    startedAt: { type: Date },
-    endedAt: { type: Date },
-    duration: { type: Number },
-    participants: [ParticipantSchema],
-    transcript: { type: String },
-    summary: { type: String },
-    recordingUrl: { type: String },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    hostId: {
+      type: String,
+      required: true,
+    },
+
+    hostName: {
+      type: String,
+      required: true,
+    },
+
+    roomCode: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["scheduled", "active", "ended"],
+      default: "scheduled",
+    },
+
+    scheduledAt: {
+      type: Date,
+    },
+
+    startedAt: {
+      type: Date,
+    },
+
+    endedAt: {
+      type: Date,
+    },
+
+    duration: {
+      type: Number,
+    },
+
+    participants: {
+      type: [ParticipantSchema],
+      default: [],
+    },
+
+    transcript: {
+      type: String,
+    },
+
+    summary: {
+      type: String,
+    },
+
+    notes: {
+      type: String,
+      default: "",
+    },
+
+    recordingUrl: {
+      type: String,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-export const Meeting = mongoose.model<IMeeting>("Meeting", MeetingSchema);
+export const Meeting = mongoose.model<IMeeting>(
+  "Meeting",
+  MeetingSchema
+);
