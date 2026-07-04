@@ -205,9 +205,12 @@ const meeting = await Meeting.findOne({ roomCode });
     });
   }
 );
-router.post("/meetings/:meetingId/end", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const raw = Array.isArray(req.params.meetingId) ? req.params.meetingId[0] : req.params.meetingId;
-  const meeting = await Meeting.findById(raw);
+router.post("/meetings/room/:roomCode/end", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const roomCode = Array.isArray(req.params.roomCode)
+  ? req.params.roomCode[0]
+  : req.params.roomCode;
+
+const meeting = await Meeting.findOne({ roomCode });
   if (!meeting) {
     res.status(404).json({ error: "Meeting not found" });
     return;
