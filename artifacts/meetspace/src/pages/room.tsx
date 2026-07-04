@@ -443,7 +443,7 @@ formData.append("duration", String(meetingTime));
    console.log("API URL:", import.meta.env.VITE_API_URL);
 
   const response = await fetch(
-  `${import.meta.env.VITE_API_URL}/recordings/upload`,
+  `${import.meta.env.VITE_API_URL}/api/recordings/upload`,
   {
     method: "POST",
     headers: {
@@ -490,7 +490,7 @@ if (!response.ok) {
     const token = localStorage.getItem("meetspace_token");
 
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/meetings/room/${roomCode}/end`,
+      `${import.meta.env.VITE_API_URL}/api/meetings/room/${roomCode}/end`,
       {
         method: "POST",
         headers: {
