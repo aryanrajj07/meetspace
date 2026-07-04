@@ -481,23 +481,53 @@ if (!response.ok) {
   setIsRecording(false);
 };
  const [showMeetingSummary, setShowMeetingSummary] = useState(false);
-  const leaveMeeting = () => {
-  const confirmLeave = window.confirm(
-    "Are you sure you want to leave this meeting?"
-  );
+  const leaveMeeting = async () => {
+  if (!window.confirm("Are you sure you want to leave this meeting?")) {
+    return;
+  }
 
-  if (!confirmLeave) return;
+  try {
+    const token = localStorage.getItem("meetspace_token");
 
-  localStreamRef.current?.getTracks().forEach(t => t.stop());
-  screenStream?.getTracks().forEach(t => t.stop());
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/meetings/room/${roomCode}/end`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  Object.values(peersRef.current).forEach(p => {
+    if (!response.ok) {
+      const error = await response.text();
+
+      console.error("End meeting failed:", response.status, error);
+
+      alert(`Failed to end meeting.\nStatus: ${response.status}`);
+
+      return;
+    }
+
+    console.log("Meeting ended successfully.");
+  } catch (err) {
+    console.error(err);
+    alert("Server connection failed.");
+    return;
+  }
+
+  localStreamRef.current?.getTracks().forEach((t) => t.stop());
+  screenStream?.getTracks().forEach((t) => t.stop());
+
+  Object.values(peersRef.current).forEach((p) => {
     p.pc.close();
     p.screenPc?.close();
   });
 
   socketRef.current?.disconnect();
-  setShowMeetingSummary(true);
+
+  setLocation("/");
 };
 
   const sendChatMessage = (e: React.FormEvent) => {

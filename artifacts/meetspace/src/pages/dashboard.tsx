@@ -8,9 +8,6 @@ import {
   Clock,
   Plus,
   Users,
-  Activity,
-  Timer,
-  BarChart3,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -65,180 +62,167 @@ export default function Dashboard() {
     return statusMatch && searchMatch;
   }) || [];
 
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Welcome back, {user?.name}</p>
-        </div>
-        <Button onClick={() => setLocation("/meetings/new")} size="lg" className="bg-blue-600 hover:bg-blue-700 gap-2">
-          <Plus className="w-5 h-5" />
-          New Meeting
-        </Button>
+
+    return (
+  <div className="space-y-8">
+    <div className="flex justify-between items-center">
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, {user?.name}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6 bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-              <Video className="w-6 h-6" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-  <Card className="p-6 bg-card border-border shadow-sm">
-    <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-        <Activity className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          Active Meetings
-        </p>
-        <p className="text-2xl font-bold">{stats.activeCount}</p>
-      </div>
+      <Button
+        onClick={() => setLocation("/meetings/new")}
+        className="bg-blue-600 hover:bg-blue-700"
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        New Meeting
+      </Button>
     </div>
+
+    {/* Stats */}
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <Card className="p-6">
+    <h3>Total Meetings</h3>
+    <p className="text-3xl font-bold">{stats.totalMeetings}</p>
   </Card>
 
-  <Card className="p-6 bg-card border-border shadow-sm">
-    <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
-        <Users className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          Participants
-        </p>
-        <p className="text-2xl font-bold">{stats.totalParticipants}</p>
-      </div>
-    </div>
+  <Card className="p-6">
+    <h3>Upcoming</h3>
+    <p className="text-3xl font-bold">{stats.upcomingCount}</p>
   </Card>
 
-  <Card className="p-6 bg-card border-border shadow-sm">
-    <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500">
-        <Timer className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          Avg Duration
-        </p>
-        <p className="text-2xl font-bold">
-          {stats.averageDuration} min
-        </p>
-      </div>
-    </div>
+  <Card className="p-6">
+    <h3>Hours</h3>
+    <p className="text-3xl font-bold">
+      {Math.floor(stats.totalDuration / 3600)}
+    </p>
+  </Card>
+
+  <Card className="p-6">
+    <h3>Hosted</h3>
+    <p className="text-3xl font-bold">{stats.hostedCount}</p>
   </Card>
 </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Meetings</p>
-              <p className="text-2xl font-bold">{stats.totalMeetings}</p>
-            </div>
+    {/* Meetings */}
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <div>
+
+        <h2 className="text-2xl font-bold mb-4">
+          Upcoming Meetings
+        </h2>
+
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : upcomingMeetings.length === 0 ? (
+          <Card className="p-8 text-center">
+            No upcoming meetings scheduled.
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {upcomingMeetings.map((meeting) => (
+              <Card
+                key={meeting.id}
+                className="p-4 flex justify-between items-center"
+              >
+                <div>
+                  <h3 className="font-bold">
+                    {meeting.title}
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground">
+
+                    {meeting.scheduledAt
+                      ? format(
+                          new Date(meeting.scheduledAt),
+                          "MMM d, yyyy h:mm a"
+                        )
+                      : "Not scheduled"}
+
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() =>
+                    setLocation(`/room/${meeting.roomCode}`)
+                  }
+                >
+                  Join
+                </Button>
+              </Card>
+            ))}
           </div>
-        </Card>
-        <Card className="p-6 bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Upcoming</p>
-              <p className="text-2xl font-bold">{stats.upcomingCount}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6 bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-              <Clock className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Hours in Meetings</p>
-              <p className="text-2xl font-bold">{Math.floor(stats.totalDuration / 3600)}h</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6 bg-card border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Hosted</p>
-              <p className="text-2xl font-bold">{stats.hostedCount}</p>
-            </div>
-          </div>
-        </Card>
+        )}
+
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Upcoming Meetings</h2>
-          {isLoading ? (
-            <div className="space-y-4 animate-pulse">
-              {[1, 2].map(i => <div key={i} className="h-24 bg-muted rounded-xl" />)}
-            </div>
-          ) : upcomingMeetings.length === 0 ? (
-            <Card className="p-8 text-center border-dashed text-muted-foreground">
-              No upcoming meetings scheduled.
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {upcomingMeetings.map(meeting => (
-                <Card key={meeting.id} className="p-4 bg-card border-border flex items-center justify-between hover:border-primary/50 transition-colors">
-                  <div>
-                    <h3 className="font-bold text-lg"><Link href={`/meetings/${meeting.id}`}>{meeting.title}</Link></h3>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                      <Calendar className="w-4 h-4" />
-                      {meeting.scheduledAt ? format(new Date(meeting.scheduledAt), "MMM d, yyyy h:mm a") : 'Not scheduled'}
-                    </p>
-                  </div>
-                  <Button onClick={() => setLocation(`/room/${meeting.roomCode}`)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    Join
-                  </Button>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+      <div>
 
-        <div className="space-y-4">
-          <div className="mb-4">
-              <Input
-              placeholder="Search meetings..."
-             value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              />
+        <Input
+          placeholder="Search meetings..."
+          className="mb-4"
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+        />
+
+        <h2 className="text-2xl font-bold mb-4">
+          Recent Meetings
+        </h2>
+
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : recentMeetings.length === 0 ? (
+          <Card className="p-8 text-center">
+            No recent meetings.
+          </Card>
+        ) : (
+          <div className="space-y-4">
+
+            {recentMeetings.map((meeting) => (
+
+              <Card
+                key={meeting.id}
+                className="p-4"
+              >
+
+                <h3 className="font-bold">
+                  {meeting.title}
+                </h3>
+
+                <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+
+                  <span>
+                    {format(
+                      new Date(meeting.createdAt),
+                      "MMM d, yyyy"
+                    )}
+                  </span>
+
+                  <span>
+                    {meeting.participants?.length || 0} participants
+                  </span>
+
+                </div>
+
+              </Card>
+
+            ))}
+
           </div>
-          <h2 className="text-xl font-bold">Recent Meetings</h2>
-          {isLoading ? (
-            <div className="space-y-4 animate-pulse">
-              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-muted rounded-xl" />)}
-            </div>
-          ) : recentMeetings.length === 0 ? (
-            <Card className="p-8 text-center border-dashed text-muted-foreground">
-              No recent meetings.
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {recentMeetings.map(meeting => (
-                <Card key={meeting.id} className="p-4 bg-card border-border flex flex-col justify-center hover:border-primary/50 transition-colors">
-                  <h3 className="font-bold text-lg"><Link href={`/meetings/${meeting.id}`}>{meeting.title}</Link></h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {format(new Date(meeting.createdAt), "MMM d, yyyy")}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {meeting.participants?.length || 0} participants
-                    </span>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
+
       </div>
+
     </div>
-  );
+
+  </div>
+);
+  
 }
